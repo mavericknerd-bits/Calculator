@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Calculator</title>
+<style>
+:root {
+  color-scheme: light;
+  --bg: #f4f4f2;
+  --surface: #ffffff;
+  --text: #1a1a1a;
+  --muted: #8a8a85;
+  --key: #f0f0ed;
+  --key-hover: #e6e6e2;
+  --accent: #1a1a1a;
+  --accent-text: #ffffff;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #121212;
+    --surface: #1c1c1c;
+    --text: #f2f2f0;
+    --muted: #8a8a85;
+    --key: #262626;
+    --key-hover: #303030;
+    --accent: #f2f2f0;
+    --accent-text: #121212;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #121212; --surface: #1c1c1c; --text: #f2f2f0; --muted: #8a8a85;
+  --key: #262626; --key-hover: #303030; --accent: #f2f2f0; --accent-text: #121212;
+}
+* { box-sizing: border-box; margin: 0; }
+html, body { height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px;
+}
+.calc {
+  width: 100%; max-width: 340px;
+  background: var(--surface);
+  border-radius: 28px;
+  padding: 20px;
+  box-shadow: 0 10px 40px rgba(0,0,0,.08);
+}
+.display { text-align: right; padding: 16px 8px 20px; min-height: 120px; display: flex; flex-direction: column; justify-content: flex-end; overflow: hidden; }
+.expr { color: var(--muted); font-size: 15px; min-height: 20px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.value { font-size: 52px; font-weight: 300; letter-spacing: -1px; line-height: 1.1; white-space: nowrap; }
+.keys { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+button {
+  font: inherit; font-size: 22px;
+  height: 64px; border: 0; border-radius: 50%;
+  background: var(--key); color: var(--text);
+  cursor: pointer; transition: background .15s, transform .08s;
+}
+button:hover { background: var(--key-hover); }
+button:active { transform: scale(.94); }
+button:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+button.op { color: var(--muted); }
+button.op.active { background: var(--accent); color: var(--accent-text); }
+button.eq { background: var(--accent); color: var(--accent-text); }
+button.eq:hover { opacity: .88; }
+button.zero { grid-column: span 2; border-radius: 32px; text-align: left; padding-left: 26px; }
+.theme { width: 40px; height: 40px; font-size: 18px; margin-bottom: 4px; background: transparent; color: var(--muted); }
+</style>
+</head>
+<body>
+<main class="calc" aria-label="Calculator">
+    <button id="theme" class="theme" aria-label="Toggle theme">◐</button>
+  <div class="display">
+    <div class="expr" id="expr"></div>
+    <div class="value" id="value" aria-live="polite">0</div>
+  </div>
+  <div class="keys" id="keys">
+    <button data-a="clear" class="op">AC</button>
+    <button data-a="neg" class="op">±</button>
+    <button data-a="pct" class="op">%</button>
+    <button data-a="op" data-v="/" class="op">÷</button>
+    <button data-a="num" data-v="7">7</button>
+    <button data-a="num" data-v="8">8</button>
+    <button data-a="num" data-v="9">9</button>
+    <button data-a="op" data-v="*" class="op">×</button>
+    <button data-a="num" data-v="4">4</button>
+    <button data-a="num" data-v="5">5</button>
+    <button data-a="num" data-v="6">6</button>
+    <button data-a="op" data-v="-" class="op">−</button>
+    <button data-a="num" data-v="1">1</button>
+    <button data-a="num" data-v="2">2</button>
+    <button data-a="num" data-v="3">3</button>
+    <button data-a="op" data-v="+" class="op">+</button>
+    <button data-a="num" data-v="0" class="zero">0</button>
+    <button data-a="dot">.</button>
+    <button data-a="eq" class="eq">=</button>
+  </div>
+</main>
+<script>
+(function () {
+  var cur = "0", prev = null, op = null, fresh = false, last = null;
+  var SYM = { "/": "÷", "*": "×", "-": "−", "+": "+" };
+  var valueEl = document.getElementById("value");
+  var exprEl = document.getElementById("expr");
+  var opBtns = document.querySelectorAll("button.op[data-a='op']");
+
+  function fmt(s) {
+    if (s === "Error") return s;
+    var neg = s[0] === "-", p = (neg ? s.slice(1) : s).split(".");
+    p[0] = p[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return (neg ? "-" : "") + p.join(".");
+  }
+  function render() {
+    var t = fmt(cur);
+    valueEl.textContent = t;
+    valueEl.style.fontSize = t.length > 14 ? "28px" : t.length > 10 ? "36px" : t.length > 7 ? "44px" : "52px";
+    exprEl.textContent = prev !== null && op ? fmt(String(prev)) + " " + SYM[op] : "";
+    opBtns.forEach(function (b) {
+      b.classList.toggle("active", fresh && op === b.dataset.v && prev !== null);
+    });
+  }
+  function calc(a, b, o) {
+    a = parseFloat(a); b = parseFloat(b);
+    var r = o === "+" ? a + b : o === "-" ? a - b : o === "*" ? a * b : (b === 0 ? NaN : a / b);
+    if (!isFinite(r)) return "Error";
+    return String(parseFloat(r.toPrecision(12)));
+  }
+  function num(d) {
+    if (cur === "Error") cur = "0";
+    if (fresh) { cur = "0"; fresh = false; }
+    if (cur.replace(/[-.]/g, "").length >= 12) return;
+    cur = cur === "0" ? d : cur + d;
+  }
+  function dot() {
+    if (cur === "Error" || fresh) { cur = "0"; fresh = false; }
+    if (cur.indexOf(".") < 0) cur += ".";
+  }
+  function setOp(o) {
+    if (cur === "Error") return;
+    if (op && prev !== null && !fresh) { cur = calc(prev, cur, op); if (cur === "Error") { prev = null; op = null; return; } }
+    prev = cur; op = o; fresh = true; last = null;
+  }
+  function eq() {
+    if (cur === "Error") return;
+    if (op && prev !== null) {
+      last = { o: op, v: cur };
+      cur = calc(prev, cur, op);
+      prev = null; op = null; fresh = true;
+    } else if (last) {
+      cur = calc(cur, last.v, last.o); fresh = true;
+    }
+  }
+  function clear() { cur = "0"; prev = null; op = null; fresh = false; last = null; }
+  function neg() { if (cur !== "0" && cur !== "Error") cur = cur[0] === "-" ? cur.slice(1) : "-" + cur; }
+  function pct() { if (cur !== "Error") cur = String(parseFloat((parseFloat(cur) / 100).toPrecision(12))); }
+  function back() {
+    if (fresh || cur === "Error") return;
+    cur = cur.length > 1 && !(cur.length === 2 && cur[0] === "-") ? cur.slice(0, -1) : "0";
+  }
+  function act(a, v) {
+    if (a === "num") num(v); else if (a === "dot") dot(); else if (a === "op") setOp(v);
+    else if (a === "eq") eq(); else if (a === "clear") clear(); else if (a === "neg") neg();
+    else if (a === "pct") pct(); else if (a === "back") back();
+    render();
+  }
+  document.getElementById("keys").addEventListener("click", function (e) {
+    var b = e.target.closest("button");
+    if (b) act(b.dataset.a, b.dataset.v);
+  });
+  document.addEventListener("keydown", function (e) {
+    var k = e.key;
+    if (/^\d$/.test(k)) act("num", k);
+    else if (k === "." || k === ",") act("dot");
+    else if ("+-*/".indexOf(k) > -1) { e.preventDefault(); act("op", k); }
+    else if (k === "Enter" || k === "=") { e.preventDefault(); act("eq"); }
+    else if (k === "Backspace") act("back");
+    else if (k === "Escape" || k === "c" || k === "C") act("clear");
+    else if (k === "%") act("pct");
+  });
+  render();
+  var root = document.documentElement;
+document.getElementById("theme").addEventListener("click", function () {
+  var dark = getComputedStyle(root).colorScheme === "dark";
+  root.setAttribute("data-theme", dark ? "light" : "dark");
+});
+})();
+</script>
+</body>
+</html>
