@@ -34,11 +34,22 @@
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #121212; --surface: #1c1c1c; --text: #f2f2f0; --muted: #8a8a85;
-  --key: #262626; --key-hover: #303030; --accent: #f2f2f0; --accent-text: #121212;
+  --bg: #121212; 
+  --surface: #1c1c1c;
+  --text: #f2f2f0;
+  --muted: #8a8a85;
+  --key: #262626; 
+  --key-hover: #303030;
+  --accent: #f2f2f0; 
+  --accent-text: #121212;
 }
-* { box-sizing: border-box; margin: 0; }
-html, body { height: 100%; }
+* { 
+  box-sizing: border-box; 
+  margin: 0; 
+}
+html, body { 
+  height: 100%;
+}
 body {
   background: var(--bg);
   color: var(--text);
@@ -53,25 +64,77 @@ body {
   padding: 20px;
   box-shadow: 0 10px 40px rgba(0,0,0,.08);
 }
-.display { text-align: right; padding: 16px 8px 20px; min-height: 120px; display: flex; flex-direction: column; justify-content: flex-end; overflow: hidden; }
-.expr { color: var(--muted); font-size: 15px; min-height: 20px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.value { font-size: 52px; font-weight: 300; letter-spacing: -1px; line-height: 1.1; white-space: nowrap; }
-.keys { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.display { text-align: right;
+          padding: 16px 8px 20px; 
+          min-height: 120px; 
+          display: flex; 
+          flex-direction: column; 
+          justify-content: flex-end; 
+          overflow: hidden;
+         }
+.expr { color: var(--muted); 
+       font-size: 15px;
+       min-height: 20px; 
+       white-space: nowrap;
+       overflow: hidden; 
+       text-overflow: ellipsis; 
+      }
+.value {
+  font-size: 52px;
+  font-weight: 300; 
+  letter-spacing: -1px; 
+  line-height: 1.1; 
+  white-space: nowrap;
+}
+.keys { 
+  display: grid; 
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px; 
+}
 button {
   font: inherit; font-size: 22px;
   height: 64px; border: 0; border-radius: 50%;
   background: var(--key); color: var(--text);
   cursor: pointer; transition: background .15s, transform .08s;
 }
-button:hover { background: var(--key-hover); }
-button:active { transform: scale(.94); }
-button:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
-button.op { color: var(--muted); }
-button.op.active { background: var(--accent); color: var(--accent-text); }
-button.eq { background: var(--accent); color: var(--accent-text); }
-button.eq:hover { opacity: .88; }
-button.zero { grid-column: span 2; border-radius: 32px; text-align: left; padding-left: 26px; }
-.theme { width: 40px; height: 40px; font-size: 18px; margin-bottom: 4px; background: transparent; color: var(--muted); }
+button:hover { 
+  background: var(--key-hover);
+}
+button:active { 
+  transform: scale(.94);
+}
+button:focus-visible { 
+  outline: 2px solid var(--text);
+  outline-offset: 2px; 
+}
+button.op {
+  color: var(--muted);
+}
+button.op.active { 
+  background: var(--accent); 
+  color: var(--accent-text); 
+}
+button.eq { 
+  background: var(--accent);
+  color: var(--accent-text);
+}
+button.eq:hover { 
+  opacity: .88;
+}
+button.zero {
+  grid-column: span 2; 
+  border-radius: 32px;
+  text-align: left; 
+  padding-left: 26px; 
+}
+.theme { 
+  width: 40px; 
+  height: 40px; 
+  font-size: 18px; 
+  margin-bottom: 4px; 
+  background: transparent; 
+  color: var(--muted);
+}
 </style>
 </head>
 <body>
